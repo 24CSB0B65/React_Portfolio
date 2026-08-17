@@ -1,72 +1,103 @@
-# Deekshitha Portfolio — React (Assignment 2)
+Project Overview
 
-A React conversion of the Assignment-1 static HTML/CSS portfolio. The visual
-design is unchanged from the original site — this assignment only adds
-components, state, side effects, and client-side routing on top of it.
+This project is a personal portfolio website developed using React and Vite. It contains separate pages for the Home, About, Projects, Project Details, Contact, and Not Found sections. The project demonstrates reusable React components, React Router navigation, props, state management, state lifting, controlled forms, form validation, and React useEffect hooks.
 
-## Setup / Run
+Setup and Run Instructions
 
-```bash
+Make sure Node.js and npm are installed on the computer.
+
+Open a terminal and navigate to the project folder.
+
+Install the required dependencies by running:
+
 npm install
-npm run dev       # start the dev server
-npm run build      # production build (must succeed with zero console errors)
-```
 
-Before running, copy `14.jpg`, `12.png`, `a4.jpg`, and `Resume.pdf` from the
-old static `Portfolio-Website` folder into `public/` (see
-`public/README-images.txt`).
+Start the development server by running:
 
-## Component Tree
+npm run dev
 
-```
-main.jsx
- └─ App.jsx                  (theme state lifted here)
-     └─ Routes
-         └─ Layout            (Navbar + <Outlet/> + Footer, persists across routes)
-             ├─ Navbar.jsx    (receives theme + toggleTheme via props)
-             ├─ Footer.jsx
-             └─ <Outlet/>
-                 ├─ Home.jsx
-                 ├─ About.jsx
-                 ├─ Projects.jsx
-                 │    └─ ProjectCard.jsx   (per-instance "expanded" state)
-                 │         └─ ProjectInfo.jsx   (receives `tech` — prop drilling level 2)
-                 ├─ ProjectDetails.jsx  (/projects/:projectId, via useParams)
-                 │    └─ ProjectInfo.jsx
-                 ├─ Contact.jsx
-                 │    └─ ContactForm.jsx  (controlled inputs + validation state)
-                 └─ NotFound.jsx   (path="*")
-```
+Open the local URL displayed in the terminal in a web browser. With Vite, this is normally:
 
-## State-Lifting Decisions
+http://localhost:5173/
 
-- **Theme (dark/light)** lives in `App.jsx` — the top-level component — and is
-  passed down to `Navbar` via props, since it's the only component that needs
-  to trigger the toggle. It's persisted to `localStorage` in a `useEffect`
-  and re-applied as a `data-theme` attribute on `<html>` so CSS can react to
-  it without prop-drilling into every page.
-- **Contact form fields + validation errors** are local to `ContactForm.jsx`
-  — no other component needs them.
-- **"View Details" expanded state** is local to each `ProjectCard.jsx`
-  instance, proving state is scoped per component instance rather than
-  shared across cards.
+To create a production build, run:
 
-## useEffect Hooks
+npm run build
 
-| Location | Purpose |
-|---|---|
-| `Home.jsx` | Empty-dependency effect that simulates a ~1s loading sequence with `setTimeout` before showing page content. Timer is cleared on unmount. |
-| `App.jsx` | Runs whenever `theme` changes; persists the value to `localStorage` and updates the `data-theme` attribute so it's read back correctly on the next load. |
-| `Navbar.jsx` | Subscribes to `window.addEventListener('resize', ...)` to drive responsive mobile-menu behavior; the listener is removed in the cleanup function on unmount to avoid leaks. |
+To preview the production build locally, run:
 
-## Routing
+npm run preview
 
-- `/` and `/Home` → Home
-- `/about` → About
-- `/projects` → Projects (lists all projects)
-- `/projects/:projectId` → ProjectDetails (dynamic route via `useParams`)
-- `/contact` → Contact
-- `*` → NotFound (404, links back to Home)
+Component Tree
 
-All navigation uses `<NavLink>` / `<Link>`, so routing never triggers a full
-page reload.
+The application starts from main.jsx, which loads App.jsx. App.jsx contains the routing and the common application layout. The Navbar and Footer are reusable components. The pages are displayed according to the current URL.
+
+The main component structure is:
+
+App
+
+ ├── Navbar
+
+ ├── Home
+
+ ├── About
+
+ ├── Projects
+
+ │    └── ProjectCard
+
+ │         └── ProjectInfo
+
+ ├── ProjectDetails
+
+ ├── Contact
+
+ │    └── ContactForm
+
+ ├── NotFound
+
+ └── Footer
+
+The project information is stored separately in the projects data file. The Projects page passes project information to reusable ProjectCard components through props. ProjectCard can then pass required information to ProjectInfo. This avoids repeating the same project markup for every project.
+
+State-Lifting Decisions
+
+The dark/light theme state is maintained in the top-level App component because the theme is an application-level setting that can affect multiple parts of the website. App stores the current theme and contains the function that changes between light and dark mode.
+
+The theme and the theme-changing function are passed from App to the layout and then to Navbar through props. The Navbar uses these props to display and change the theme. This is state lifting because the shared state is maintained by a common parent rather than separately inside Navbar.
+
+The selected theme is also stored in localStorage so that the user's theme preference remains after refreshing the page.
+
+Controlled Contact Form and Validation
+
+The contact form is implemented as a controlled React form in ContactForm.jsx. The name, email, and message fields are stored in React state. Each input receives its value from state and uses an onChange handler to update the state whenever the user types.
+
+The form also maintains an errors object in state. The validation function checks that the name and message are not empty and that the email field is filled and follows a basic valid email format. Validation messages are displayed beside the relevant fields.
+
+The submit button is disabled while required fields are empty or invalid. Once all required fields are valid, the button becomes enabled. After a valid submission, a success message is displayed and the form is cleared.
+
+React Router Navigation
+
+React Router is used to navigate between the different pages without completely reloading the browser. The Navbar uses NavLink components for navigation links such as Home, About, Projects, and Contact. The corresponding routes are defined in App.jsx.
+
+The project also contains a dynamic project-details route so that an individual project can be displayed based on its project ID. A NotFound route handles URLs that do not match an existing page.
+
+useEffect Hooks Used in the Project
+
+1. App.jsx – Theme Persistence
+
+The useEffect hook in App.jsx runs whenever the selected theme changes. It stores the current theme in localStorage and updates the data-theme attribute on the document's root HTML element. The CSS uses this attribute to apply the light or dark theme. This effect is necessary because localStorage and the document element are external to React's normal rendering process.
+
+2. Navbar.jsx – Window Resize Handling
+
+The Navbar uses useEffect to listen for browser window resize events. It checks the window width to determine whether the navigation should behave as a mobile or desktop navigation. The effect removes the resize listener when the component is unmounted. This cleanup is necessary to avoid leaving an unnecessary event listener active.
+
+3. Home.jsx – Loading State
+
+The Home page uses useEffect to manage its initial loading behavior. A short timer is started when the page loads, and after the timer finishes the loading state is changed so the main Home page content can be displayed. The timer is cleared when the component is unmounted so that it does not continue unnecessarily.
+
+Summary
+
+The project is organized into reusable components and separate pages so that each part of the website has a clear responsibility. Shared application state such as the theme is maintained in App.jsx and passed to components through props. Local state such as contact form values and validation errors is maintained inside the component that uses it.
+
+React Router handles page navigation. The useEffect hooks are used for side effects such as theme persistence, window resize handling, and the Home page loading timer. Together, these features demonstrate the main React concepts required for the portfolio project.
